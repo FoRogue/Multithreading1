@@ -1,10 +1,53 @@
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
+
+// Буфер для хранения данных
+class Buffer {
+    private final Queue<Integer> queue = new LinkedList<>();
+    private final int capacity;
+
+    public Buffer(int capacity) {
+        this.capacity = capacity;
+    }
+
+    // Метод для добавления данных в буфер
+    public synchronized void produce(int value) throws InterruptedException {
+        while (queue.size() == capacity) {
+
+            System.out.println("Буфер заполнен. Ожидание потребителя...");
+            wait();
+        }
+
+        queue.add(value);
+        System.out.println("Производитель добавил: " + value);
+
+        notifyAll();
+    }
+
+    // Метод для извлечения данных из буфера
+    public synchronized int consume() throws InterruptedException {
+        while (queue.isEmpty()) {
+
+            System.out.println("Буфер пуст. Ожидание производителя...");
+            wait();
+        }
+
+        int value = queue.poll();
+        System.out.println("Потребитель забрал: " + value);
+
+        notifyAll();
+        return value;
+    }
+}
+
+
 
 public class Main {
     public static void main(String[] args) {
 
         Scanner in = new Scanner(System.in);
-        //boolean flag = false;
+
         while(true) {
             System.out.println("Выберете номер задания");
             int opt=in.nextInt();
@@ -12,6 +55,7 @@ public class Main {
                 case (1):
                     System.out.println("Задание 1");
                     MultithreadStuff myStuff = new MultithreadStuff();
+                    System.out.println(myStuff.getName());
                     myStuff.start();
 
                     break;
@@ -30,6 +74,15 @@ public class Main {
                     timerThread.start();
                     message5.start();
                     message7.start();
+                    break;
+                case(4):
+                    System.out.println("Задание 4");
+                    Buffer buffer = new Buffer(5);
+                    Thread proizvod = new Thread(new Proizvod(buffer));
+                    proizvod.start();
+
+                    Thread potreb = new Thread(new Potrebitel(buffer));
+                    potreb.start();
 
                     break;
                 default:
